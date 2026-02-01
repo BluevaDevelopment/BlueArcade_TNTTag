@@ -1,6 +1,6 @@
 name: TNT Tag
 id: tnt_tag
-version: 1.0.0
+version: 1.0.1
 type: MINIGAME
 api-version: 1.0
 main: net.blueva.arcade.modules.tnttag.TNTTagModule

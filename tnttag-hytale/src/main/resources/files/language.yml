@@ -65,10 +65,7 @@ scoreboard:
       - "<yellow>www.blueva.net</yellow>"
 
 setup_messages:
-  usage: "{prefix} <yellow>Usage: /baa game <id> tnt_tag setregion selection</yellow>"
-  must_use_stick: "{prefix} <yellow>Select two corners with the setup tool first.</yellow>"
-  region_set: "{prefix} <green>Regeneration region saved.</green> <gray>Blocks:</gray> <white>{blocks}</white> <gray>({x}x{y}x{z})</gray>"
-  not_configured: "{prefix} <red>You must configure the play region for arena {arena_id}.</red>"
+  no_extra_steps: "{prefix} <yellow>TNT Tag does not require any extra setup steps.</yellow>"
 
 placeholders:
   none: "None"
