@@ -23,7 +23,7 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
 import java.util.*;
 
@@ -51,7 +51,7 @@ public class TNTTagGameManager {
         this.messagingService = new MessagingService(moduleConfig, coreConfig, moduleInfo);
     }
 
-    public void handleStart(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void handleStart(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
 
         context.getSchedulerAPI().cancelArenaTasks(arenaId);
@@ -71,12 +71,12 @@ public class TNTTagGameManager {
         startMovementTracking(context);
     }
 
-    public void handleCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void handleCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                     int secondsLeft) {
         messagingService.sendCountdownTick(context, secondsLeft);
     }
 
-    public void handleCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void handleCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         messagingService.sendCountdownFinish(context);
     }
 
@@ -84,7 +84,7 @@ public class TNTTagGameManager {
         return false;
     }
 
-    public void handleGameStart(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void handleGameStart(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
 
         for (Player player : context.getPlayers()) {
@@ -102,7 +102,7 @@ public class TNTTagGameManager {
         context.getSchedulerAPI().runTimer(indicatorTaskId, () -> updateIndicators(context), 0L, indicatorPeriod);
     }
 
-    private void handleGameTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void handleGameTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
         ArenaRuntime runtime = arenaRegistry.get(arenaId);
         if (runtime == null) {
@@ -133,7 +133,7 @@ public class TNTTagGameManager {
         sendHudUpdates(context, alivePlayers, timeLeft, runtime);
     }
 
-    private void sendHudUpdates(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void sendHudUpdates(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                 List<Player> actionBarTargets,
                                 int timeLeft,
                                 ArenaRuntime runtime) {
@@ -169,7 +169,7 @@ public class TNTTagGameManager {
         applySmokeWarning(context, runtime, timeLeft);
     }
 
-    private void handleRoundExpiration(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void handleRoundExpiration(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                        ArenaRuntime runtime) {
         Set<UUID> currentTagged = new HashSet<>(runtime.getTaggedPlayers());
 
@@ -185,7 +185,7 @@ public class TNTTagGameManager {
         beginNextRound(context);
     }
 
-    private void awardSurvivalStats(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void awardSurvivalStats(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                     ArenaRuntime runtime,
                                     Set<UUID> currentTagged) {
         Set<UUID> hadTNT = runtime.getTaggedThisRound();
@@ -202,7 +202,7 @@ public class TNTTagGameManager {
         }
     }
 
-    private void detonateTaggedPlayers(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void detonateTaggedPlayers(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                        ArenaRuntime runtime,
                                        Set<UUID> currentTagged) {
         for (Player player : new ArrayList<>(context.getAlivePlayers())) {
@@ -211,7 +211,8 @@ public class TNTTagGameManager {
             }
 
             indicatorService.clearIndicator(player);
-            context.getMessagesAPI().send(player,
+            loadoutService.clearTransitionEffects(player);
+            context.getMessagesAPI().sendRaw(player,
                     moduleConfig.getStringFrom("language.yml", "messages.detonated"));
             context.getSoundsAPI().play(player, coreConfig.getSound("sounds.in_game.dead"));
             playExplosionEffect(player);
@@ -227,7 +228,7 @@ public class TNTTagGameManager {
         runtime.resetTags();
     }
 
-    private void beginNextRound(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void beginNextRound(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         ArenaRuntime runtime = arenaRegistry.get(context.getArenaId());
         if (runtime == null) {
             return;
@@ -245,7 +246,7 @@ public class TNTTagGameManager {
         sendHudUpdates(context, context.getAlivePlayers(), runtime.getRoundTimeLeft(), runtime);
     }
 
-    private int resolveRoundDuration(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private int resolveRoundDuration(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         Integer configuredTime = context.getDataAccess().getGameData("basic.time", Integer.class);
         if (configuredTime == null || configuredTime <= 0) {
             configuredTime = moduleConfig.getInt("round.default_seconds", 15);
@@ -265,7 +266,7 @@ public class TNTTagGameManager {
         return convert && configuredSeconds >= detectionThreshold && configuredSeconds % 60 == 0;
     }
 
-    private void selectTaggedPlayers(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void selectTaggedPlayers(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                      ArenaRuntime runtime) {
         List<Player> alivePlayers = new ArrayList<>(context.getAlivePlayers());
         if (alivePlayers.isEmpty()) {
@@ -329,7 +330,7 @@ public class TNTTagGameManager {
         return fallback;
     }
 
-    private void updateIndicators(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void updateIndicators(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
         ArenaRuntime runtime = arenaRegistry.get(arenaId);
         if (runtime == null) {
@@ -365,13 +366,13 @@ public class TNTTagGameManager {
         }
     }
 
-    private void applySmokeWarning(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void applySmokeWarning(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                    ArenaRuntime runtime,
                                    int timeLeft) {
         // Particle warnings are not currently supported in the Hytale runtime.
     }
 
-    public void finishGameIfPossible(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void finishGameIfPossible(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
         ArenaRuntime runtime = arenaRegistry.get(arenaId);
         if (runtime == null) {
@@ -398,16 +399,18 @@ public class TNTTagGameManager {
         context.endGame();
     }
 
-    public void handleEnd(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void handleEnd(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                           GameResult<Player> result) {
         int arenaId = context.getArenaId();
 
+        context.getSchedulerAPI().cancelTask(getMovementTaskId(arenaId));
         context.getSchedulerAPI().cancelArenaTasks(arenaId);
         arenaRegistry.remove(arenaId);
 
         statsService.recordGamesPlayed(context.getPlayers());
         for (Player player : context.getPlayers()) {
             indicatorService.clearIndicator(player);
+            loadoutService.clearTransitionEffects(player);
         }
         tagCountTracker.removePlayers(context.getPlayers());
         playerArenaRegistry.removeArena(arenaId);
@@ -425,12 +428,12 @@ public class TNTTagGameManager {
         indicatorService.clearAllIndicators();
     }
 
-    public boolean playerCanTag(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public boolean playerCanTag(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                 Player player) {
         return isTagged(context, player);
     }
 
-    public void passTNT(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void passTNT(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                         Player from,
                         Player to) {
         int arenaId = context.getArenaId();
@@ -464,7 +467,7 @@ public class TNTTagGameManager {
         messagingService.broadcastTaggedHolder(context, to);
     }
 
-    public GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> getGameContext(Player player) {
+    public GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> getGameContext(Player player) {
         Integer arenaId = playerArenaRegistry.getArenaId(player);
         if (arenaId == null) {
             return null;
@@ -476,7 +479,7 @@ public class TNTTagGameManager {
     public Map<String, String> getCustomPlaceholders(Player player) {
         Map<String, String> placeholders = new HashMap<>();
 
-        GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context = getGameContext(player);
+        GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context = getGameContext(player);
         if (context != null) {
             ArenaRuntime runtime = arenaRegistry.get(context.getArenaId());
             int roundNumber = runtime != null ? runtime.getRoundNumber() : 1;
@@ -503,7 +506,7 @@ public class TNTTagGameManager {
         return placeholders;
     }
 
-    private List<String> getTaggedPlayerNames(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private List<String> getTaggedPlayerNames(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         ArenaRuntime runtime = arenaRegistry.get(context.getArenaId());
         if (runtime == null) {
             return Collections.emptyList();
@@ -527,28 +530,30 @@ public class TNTTagGameManager {
         return names;
     }
 
-    private void handleTaggedStatusChange(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void handleTaggedStatusChange(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                           Player player,
                                           boolean tagged) {
         if (tagged) {
-            context.getMessagesAPI().send(player,
+            context.getMessagesAPI().sendRaw(player,
                     moduleConfig.getStringFrom("language.yml", "messages.you_have_tnt"));
+            loadoutService.applyTaggedState(player);
             indicatorService.applyIndicator(player, arenaRegistry.get(context.getArenaId()));
             return;
         }
 
-        context.getMessagesAPI().send(player,
+        context.getMessagesAPI().sendRaw(player,
                 moduleConfig.getStringFrom("language.yml", "messages.you_no_have_tnt"));
+        loadoutService.applyUntaggedState(player);
         indicatorService.clearIndicator(player);
     }
 
-    private boolean isTagged(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private boolean isTagged(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                              Player player) {
         ArenaRuntime runtime = arenaRegistry.get(context.getArenaId());
         return runtime != null && runtime.getTaggedPlayers().contains(player.getUuid());
     }
 
-    private void registerEliminationPodium(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private void registerEliminationPodium(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                            ArenaRuntime runtime) {
         if (context == null || runtime == null) {
             return;
@@ -571,7 +576,7 @@ public class TNTTagGameManager {
         }
     }
 
-    private Player findPlayerById(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    private Player findPlayerById(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                   UUID playerId) {
         if (context == null || playerId == null) {
             return null;
@@ -596,6 +601,10 @@ public class TNTTagGameManager {
         return "tnt_tag_indicator_" + arenaId;
     }
 
+    private String getMovementTaskId(int arenaId) {
+        return "tnt_tag_movement_" + arenaId;
+    }
+
     private void playExplosionEffect(Player player) {
         VisualEffectsAPI<Player, Location> visualEffectsAPI = ModuleAPI.getVisualEffectsAPI();
         if (visualEffectsAPI == null) {
@@ -609,13 +618,23 @@ public class TNTTagGameManager {
         }
     }
 
-    private void startMovementTracking(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void startMovementTracking(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         int arenaId = context.getArenaId();
-        String taskId = "tnt_tag_movement_" + arenaId;
-        context.getSchedulerAPI().runTimer(taskId, () -> handleMovementTick(context), 0L, 5L);
+        String taskId = getMovementTaskId(arenaId);
+        World world = context.getArenaAPI().getWorld();
+        if (world != null) {
+            context.getSchedulerAPI().runTimer(taskId, () -> world.execute(() -> handleMovementTick(context)), 0L, 5L);
+        } else {
+            context.getSchedulerAPI().runTimer(taskId, () -> handleMovementTick(context), 0L, 5L);
+        }
     }
 
-    private void handleMovementTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    private void handleMovementTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
+        int arenaId = context.getArenaId();
+        if (arenaRegistry.get(arenaId) == null) {
+            context.getSchedulerAPI().cancelTask(getMovementTaskId(arenaId));
+            return;
+        }
         for (Player player : context.getPlayers()) {
             if (player == null) {
                 continue;
@@ -623,19 +642,25 @@ public class TNTTagGameManager {
             if (!context.isPlayerPlaying(player)) {
                 continue;
             }
-            Location current = resolvePlayerLocation(player);
-            if (current == null) {
-                continue;
-            }
+            handleMovementTickForPlayer(context, player);
+        }
+    }
 
-            if (!context.isInsideBounds(current)) {
-                context.respawnPlayer(player);
-                continue;
-            }
-
-            if (context.getPhase() != GamePhase.PLAYING) {
-                continue;
-            }
+    private void handleMovementTickForPlayer(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
+                                             Player player) {
+        if (!context.isPlayerPlaying(player)) {
+            return;
+        }
+        Location current = resolvePlayerLocation(player);
+        if (current == null) {
+            return;
+        }
+        if (!context.isInsideBounds(current)) {
+            context.respawnPlayer(player);
+            return;
+        }
+        if (context.getPhase() != GamePhase.PLAYING) {
+            return;
         }
     }
 

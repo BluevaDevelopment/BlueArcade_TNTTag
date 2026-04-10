@@ -13,7 +13,7 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.ecs.DropItemEvent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import net.blueva.arcade.api.game.GameContext;
 import net.blueva.arcade.modules.tnttag.game.TNTTagGameManager;
@@ -47,7 +47,7 @@ public class TNTTagItemDropListener extends EntityEventSystem<EntityStore, DropI
         if (player == null) {
             return;
         }
-        GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context =
+        GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context =
                 gameManager.getGameContext(player);
         if (context == null || !context.isPlayerPlaying(player)) {
             return;

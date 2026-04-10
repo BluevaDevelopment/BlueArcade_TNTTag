@@ -22,12 +22,11 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-public class TNTTagModule implements GameModule<Player, Location, World, String, ItemStack, String, BlockState, Entity, EventSubscription<?>, Short> {
+public class TNTTagModule implements GameModule<Player, Location, World, String, ItemStack, String, Holder, Entity, EventSubscription<?>, Short> {
 
     private ModuleConfigAPI moduleConfig;
     public CoreConfigAPI coreConfig;
@@ -76,18 +75,18 @@ public class TNTTagModule implements GameModule<Player, Location, World, String,
     }
 
     @Override
-    public void onStart(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void onStart(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         gameManager.handleStart(context);
     }
 
     @Override
-    public void onCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void onCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                 int secondsLeft) {
         gameManager.handleCountdownTick(context, secondsLeft);
     }
 
     @Override
-    public void onCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void onCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         gameManager.handleCountdownFinish(context);
     }
 
@@ -97,12 +96,12 @@ public class TNTTagModule implements GameModule<Player, Location, World, String,
     }
 
     @Override
-    public void onGameStart(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void onGameStart(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         gameManager.handleGameStart(context);
     }
 
     @Override
-    public void onEnd(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void onEnd(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                       GameResult<Player> result) {
         gameManager.handleEnd(context, result);
     }
@@ -114,55 +113,18 @@ public class TNTTagModule implements GameModule<Player, Location, World, String,
 
     @Override
     public void registerEvents(CustomEventRegistry<EventSubscription<?>, Short> registry) {
-        if (!damageListenerRegistered) {
-            try {
-                registry.getClass()
-                        .getMethod("registerSystem", com.hypixel.hytale.component.system.EntityEventSystem.class)
-                        .invoke(registry, new TNTTagDamageListener(gameManager));
-                damageListenerRegistered = true;
-            } catch (InvocationTargetException e) {
-                if (isAlreadyRegistered(e.getCause())) {
+        if (!damageListenerRegistered || !itemDropListenerRegistered) {
+            if (registry instanceof net.blueva.arcade.api.events.hytale.HytaleEventRegistry hytaleRegistry) {
+                if (!damageListenerRegistered) {
+                    hytaleRegistry.registerSystem(new TNTTagDamageListener(gameManager));
                     damageListenerRegistered = true;
-                } else {
-                    throw new RuntimeException("Failed to register TNT Tag damage listener", e);
                 }
-            } catch (Exception e) {
-                if (isAlreadyRegistered(e)) {
-                    damageListenerRegistered = true;
-                } else {
-                    throw new RuntimeException("Failed to register TNT Tag damage listener", e);
+                if (!itemDropListenerRegistered) {
+                    hytaleRegistry.registerSystem(new TNTTagItemDropListener(gameManager));
+                    itemDropListenerRegistered = true;
                 }
             }
         }
-
-        if (!itemDropListenerRegistered) {
-            try {
-                registry.getClass()
-                        .getMethod("registerSystem", com.hypixel.hytale.component.system.EntityEventSystem.class)
-                        .invoke(registry, new TNTTagItemDropListener(gameManager));
-                itemDropListenerRegistered = true;
-            } catch (InvocationTargetException e) {
-                if (isAlreadyRegistered(e.getCause())) {
-                    itemDropListenerRegistered = true;
-                } else {
-                    throw new RuntimeException("Failed to register TNT Tag item drop listener", e);
-                }
-            } catch (Exception e) {
-                if (isAlreadyRegistered(e)) {
-                    itemDropListenerRegistered = true;
-                } else {
-                    throw new RuntimeException("Failed to register TNT Tag item drop listener", e);
-                }
-            }
-        }
-    }
-
-    private boolean isAlreadyRegistered(Throwable error) {
-        if (!(error instanceof IllegalArgumentException)) {
-            return false;
-        }
-        String message = error.getMessage();
-        return message != null && message.contains("already registered");
     }
 
     @Override

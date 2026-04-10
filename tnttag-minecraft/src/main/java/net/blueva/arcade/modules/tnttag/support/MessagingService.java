@@ -84,7 +84,7 @@ public class MessagingService {
                                  int round) {
         for (Player player : context.getPlayers()) {
             if (!player.isOnline()) continue;
-            context.getMessagesAPI().send(player,
+            context.getMessagesAPI().sendRaw(player,
                     moduleConfig.getStringFrom("language.yml", "messages.new_round")
                             .replace("{round}", String.valueOf(round)));
         }

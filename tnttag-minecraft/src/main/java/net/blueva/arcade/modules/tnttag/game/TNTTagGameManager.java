@@ -212,7 +212,8 @@ public class TNTTagGameManager {
             }
 
             indicatorService.clearIndicator(player);
-            context.getMessagesAPI().send(player,
+            loadoutService.clearTransitionEffects(player);
+            context.getMessagesAPI().sendRaw(player,
                     moduleConfig.getStringFrom("language.yml", "messages.detonated"));
             context.getSoundsAPI().play(player, coreConfig.getSound("sounds.in_game.dead"));
             player.getWorld().spawnParticle(
@@ -437,6 +438,7 @@ public class TNTTagGameManager {
         statsService.recordGamesPlayed(context.getPlayers());
         for (Player player : context.getPlayers()) {
             indicatorService.clearIndicator(player);
+            loadoutService.clearTransitionEffects(player);
         }
         tagCountTracker.removePlayers(context.getPlayers());
         playerArenaRegistry.removeArena(arenaId);
@@ -557,14 +559,16 @@ public class TNTTagGameManager {
                                           Player player,
                                           boolean tagged) {
         if (tagged) {
-            context.getMessagesAPI().send(player,
+            context.getMessagesAPI().sendRaw(player,
                     moduleConfig.getStringFrom("language.yml", "messages.you_have_tnt"));
+            loadoutService.applyTaggedState(player);
             indicatorService.applyIndicator(player, arenaRegistry.get(context.getArenaId()));
             return;
         }
 
-        context.getMessagesAPI().send(player,
+        context.getMessagesAPI().sendRaw(player,
                 moduleConfig.getStringFrom("language.yml", "messages.you_no_have_tnt"));
+        loadoutService.applyUntaggedState(player);
         indicatorService.clearIndicator(player);
     }
 

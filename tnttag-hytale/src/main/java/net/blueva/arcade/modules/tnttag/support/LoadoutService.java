@@ -20,10 +20,30 @@ public class LoadoutService {
         clearInventory(player);
         giveStartingItems(player);
         applyStartingEffects(player);
+        applyUntaggedEffects(player);
     }
 
     public void restorePlayer(Player player) {
+        clearTransitionEffects(player);
         applyStartingEffects(player);
+        applyUntaggedEffects(player);
+    }
+
+    public void applyTaggedState(Player player) {
+        clearTransitionEffects(player);
+        applyStartingEffects(player);
+        applyTaggedEffects(player);
+    }
+
+    public void applyUntaggedState(Player player) {
+        clearTransitionEffects(player);
+        applyStartingEffects(player);
+        applyUntaggedEffects(player);
+    }
+
+    public void clearTransitionEffects(Player player) {
+        clearTaggedEffects(player);
+        clearUntaggedEffects(player);
     }
 
     public void clearInventory(Player player) {
@@ -66,11 +86,34 @@ public class LoadoutService {
         applyEffects(player, moduleConfig.getStringList("effects.starting_effects"));
     }
 
+    private void applyTaggedEffects(Player player) {
+        applyEffects(player, moduleConfig.getStringList("effects.tagged_effects"));
+    }
+
+    private void clearTaggedEffects(Player player) {
+        clearEffects(player, moduleConfig.getStringList("effects.tagged_effects"));
+    }
+
+    private void applyUntaggedEffects(Player player) {
+        applyEffects(player, moduleConfig.getStringList("effects.untagged_effects"));
+    }
+
+    private void clearUntaggedEffects(Player player) {
+        clearEffects(player, moduleConfig.getStringList("effects.untagged_effects"));
+    }
+
     private void applyEffects(Player player, List<String> effects) {
         if (effects == null || effects.isEmpty()) {
             return;
         }
         // Status effect application is not yet available in the Hytale runtime.
+    }
+
+    private void clearEffects(Player player, List<String> effects) {
+        if (effects == null || effects.isEmpty()) {
+            return;
+        }
+        // Status effect removal is not yet available in the Hytale runtime.
     }
 
     private void addItem(Player player, ItemStack item, int slot) {

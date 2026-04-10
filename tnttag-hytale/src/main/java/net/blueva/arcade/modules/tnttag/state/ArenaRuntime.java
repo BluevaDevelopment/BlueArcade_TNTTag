@@ -6,7 +6,7 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
 import java.util.Set;
 import java.util.UUID;
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ArenaRuntime {
 
     private final int arenaId;
-    private final GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context;
+    private final GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context;
     private boolean ended;
     private int roundNumber;
     private int roundTimeLeft;
@@ -29,7 +29,7 @@ public class ArenaRuntime {
     private final Set<UUID> taggedThisRound = ConcurrentHashMap.newKeySet();
     private final List<UUID> eliminationOrder = new ArrayList<>();
 
-    public ArenaRuntime(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public ArenaRuntime(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         this.context = context;
         this.arenaId = context.getArenaId();
     }
@@ -38,7 +38,7 @@ public class ArenaRuntime {
         return arenaId;
     }
 
-    public GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> getContext() {
+    public GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> getContext() {
         return context;
     }
 

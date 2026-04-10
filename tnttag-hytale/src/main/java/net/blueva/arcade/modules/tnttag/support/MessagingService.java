@@ -9,7 +9,7 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class MessagingService {
         this.moduleInfo = moduleInfo;
     }
 
-    public void sendDescription(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void sendDescription(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         List<String> description = moduleConfig.getStringListFrom("language.yml", "description");
 
         for (Player player : context.getPlayers()) {
@@ -35,7 +35,7 @@ public class MessagingService {
         }
     }
 
-    public void sendCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void sendCountdownTick(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                   int secondsLeft) {
         for (Player player : context.getPlayers()) {
             context.getSoundsAPI().play(player, coreConfig.getSound("sounds.starting_game.countdown"));
@@ -52,7 +52,7 @@ public class MessagingService {
         }
     }
 
-    public void sendCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public void sendCountdownFinish(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         for (Player player : context.getPlayers()) {
             String title = coreConfig.getLanguage("titles.game_started.title")
                     .replace("{game_display_name}", moduleInfo.getName());
@@ -65,7 +65,7 @@ public class MessagingService {
         }
     }
 
-    public void broadcastTaggedHolder(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void broadcastTaggedHolder(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                       Player newHolder) {
         String playerName = newHolder.getPlayerRef() != null ? newHolder.getPlayerRef().getUsername() : null;
         if (playerName == null || playerName.isBlank()) {
@@ -78,10 +78,10 @@ public class MessagingService {
         }
     }
 
-    public void announceNewRound(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context,
+    public void announceNewRound(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context,
                                  int round) {
         for (Player player : context.getPlayers()) {
-            context.getMessagesAPI().send(player,
+            context.getMessagesAPI().sendRaw(player,
                     moduleConfig.getStringFrom("language.yml", "messages.new_round")
                             .replace("{round}", String.valueOf(round)));
         }

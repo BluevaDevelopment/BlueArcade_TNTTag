@@ -61,9 +61,11 @@ public class TNTTagListener implements Listener {
         GameContext<Player, Location, World, Material, ItemStack, Sound, Block, Entity> context =
                 gameManager.getGameContext(player);
 
-        if (context == null || !context.isPlayerPlaying(player) || context.getPhase() != GamePhase.PLAYING) {
-            event.setCancelled(true);
+        if (context == null || !context.isPlayerPlaying(player)) {
+            return;
         }
+
+        event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -72,9 +74,11 @@ public class TNTTagListener implements Listener {
         GameContext<Player, Location, World, Material, ItemStack, Sound, Block, Entity> context =
                 gameManager.getGameContext(player);
 
-        if (context == null || !context.isPlayerPlaying(player) || context.getPhase() != GamePhase.PLAYING) {
-            event.setCancelled(true);
+        if (context == null || !context.isPlayerPlaying(player)) {
+            return;
         }
+
+        event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

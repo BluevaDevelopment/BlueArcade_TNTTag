@@ -1,6 +1,6 @@
 # TNT Tag Module Settings
 
-file_version: 1
+file_version: 2
 # Visual representation in menus
 menus:
   vote:
@@ -58,8 +58,20 @@ effects:
   starting_effects:
     - "SPEED:999999:0"
 
-  # Effects when player respawns
+  # Effects that only apply while the player is carrying the TNT
   # Format: EFFECT_TYPE:DURATION_TICKS:AMPLIFIER
+  tagged_effects: []
+  # Example:
+  # - "SPEED:999999:1"
+
+  # Effects that only apply while the player is NOT carrying the TNT
+  # Format: EFFECT_TYPE:DURATION_TICKS:AMPLIFIER
+  untagged_effects: []
+  # Example:
+  # - "JUMP_BOOST:999999:0"
+
+  # Reserved for compatibility with the shared module config structure.
+  # TNT Tag players do not respawn after elimination, so this setting is not used here.
   respawn_effects: []
 
 explosion:

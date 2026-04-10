@@ -26,7 +26,7 @@ public class TNTTagSetup implements GameSetupHandler {
     }
 
     private boolean handleInternal(SetupContext<Player, CommandSender, Location> context) {
-        context.getMessagesAPI().send(context.getPlayer(),
+        context.getMessagesAPI().sendRaw(context.getPlayer(),
                 module.getModuleConfig().getStringFrom("language.yml", "setup_messages.no_extra_steps"));
         return true;
     }

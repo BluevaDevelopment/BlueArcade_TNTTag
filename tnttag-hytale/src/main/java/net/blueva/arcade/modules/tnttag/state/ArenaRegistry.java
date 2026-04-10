@@ -6,7 +6,7 @@ import com.hypixel.hytale.server.core.entity.Entity;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.component.Holder;
 
 import java.util.Collection;
 import java.util.Map;
@@ -16,7 +16,7 @@ public class ArenaRegistry {
 
     private final Map<Integer, ArenaRuntime> arenas = new ConcurrentHashMap<>();
 
-    public ArenaRuntime register(GameContext<Player, Location, World, String, ItemStack, String, BlockState, Entity> context) {
+    public ArenaRuntime register(GameContext<Player, Location, World, String, ItemStack, String, Holder, Entity> context) {
         ArenaRuntime runtime = new ArenaRuntime(context);
         arenas.put(context.getArenaId(), runtime);
         return runtime;

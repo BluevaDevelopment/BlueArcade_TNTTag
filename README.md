@@ -40,7 +40,7 @@ Use these steps to register the arena and attach the module:
 
 ### Module-specific steps
 Finish the setup with the commands below:
-- `/baa game [arena_id] tnt_tag setregion selection` — Select and save the play region.
+- `/baa game [arena_id] tnt_tag enable` — Enable the game
 
 ## Technical details
 - **Minigame ID:** `tnt_tag`

@@ -24,12 +24,48 @@ public class LoadoutService {
         restorePlayerHealthAndHunger(player);
         giveStartingItems(player);
         applyStartingEffects(player);
+        applyUntaggedEffects(player);
     }
 
     public void restorePlayer(Player player) {
         player.setGameMode(GameMode.SURVIVAL);
         restorePlayerHealthAndHunger(player);
+        clearTransitionEffects(player);
         applyStartingEffects(player);
+        applyUntaggedEffects(player);
+    }
+
+    public void applyTaggedState(Player player) {
+        clearTransitionEffects(player);
+        applyStartingEffects(player);
+        applyTaggedEffects(player);
+    }
+
+    public void applyUntaggedState(Player player) {
+        clearTransitionEffects(player);
+        applyStartingEffects(player);
+        applyUntaggedEffects(player);
+    }
+
+    public void clearTransitionEffects(Player player) {
+        clearTaggedEffects(player);
+        clearUntaggedEffects(player);
+    }
+
+    public void applyTaggedEffects(Player player) {
+        applyEffects(player, moduleConfig.getStringList("effects.tagged_effects"));
+    }
+
+    public void clearTaggedEffects(Player player) {
+        clearEffects(player, moduleConfig.getStringList("effects.tagged_effects"));
+    }
+
+    public void applyUntaggedEffects(Player player) {
+        applyEffects(player, moduleConfig.getStringList("effects.untagged_effects"));
+    }
+
+    public void clearUntaggedEffects(Player player) {
+        clearEffects(player, moduleConfig.getStringList("effects.untagged_effects"));
     }
 
     private void restorePlayerHealthAndHunger(Player player) {
@@ -80,27 +116,65 @@ public class LoadoutService {
     }
 
     private void applyStartingEffects(Player player) {
-        List<String> startingEffects = moduleConfig.getStringList("effects.starting_effects");
+        applyEffects(player, moduleConfig.getStringList("effects.starting_effects"));
+    }
 
-        if (startingEffects == null || startingEffects.isEmpty()) {
+    private void applyEffects(Player player, List<String> effects) {
+        if (effects == null || effects.isEmpty()) {
             return;
         }
 
-        for (String effectString : startingEffects) {
+        for (String effectString : effects) {
             try {
-                String[] parts = effectString.split(":");
-                if (parts.length >= 3) {
-                    PotionEffectType effectType = PotionEffectType.getByName(parts[0].toUpperCase());
-                    int duration = Integer.parseInt(parts[1]);
-                    int amplifier = Integer.parseInt(parts[2]);
-
-                    if (effectType != null) {
-                        player.addPotionEffect(new PotionEffect(effectType, duration, amplifier, false, false));
-                    }
+                PotionEffect effect = parseEffect(effectString);
+                if (effect != null) {
+                    player.addPotionEffect(effect);
                 }
             } catch (Exception e) {
                 // Ignore malformed entries
             }
         }
+    }
+
+    private void clearEffects(Player player, List<String> effects) {
+        if (effects == null || effects.isEmpty()) {
+            return;
+        }
+
+        for (String effectString : effects) {
+            try {
+                PotionEffectType effectType = parseEffectType(effectString);
+                if (effectType != null) {
+                    player.removePotionEffect(effectType);
+                }
+            } catch (Exception e) {
+                // Ignore malformed entries
+            }
+        }
+    }
+
+    private PotionEffect parseEffect(String effectString) {
+        String[] parts = effectString.split(":");
+        if (parts.length < 3) {
+            return null;
+        }
+
+        PotionEffectType effectType = parseEffectType(effectString);
+        if (effectType == null) {
+            return null;
+        }
+
+        int duration = Integer.parseInt(parts[1]);
+        int amplifier = Integer.parseInt(parts[2]);
+        return new PotionEffect(effectType, duration, amplifier, false, false);
+    }
+
+    private PotionEffectType parseEffectType(String effectString) {
+        String[] parts = effectString.split(":");
+        if (parts.length == 0) {
+            return null;
+        }
+
+        return PotionEffectType.getByName(parts[0].toUpperCase());
     }
 }
