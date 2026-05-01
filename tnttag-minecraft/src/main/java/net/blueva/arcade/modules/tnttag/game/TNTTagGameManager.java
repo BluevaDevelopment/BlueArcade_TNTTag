@@ -217,7 +217,7 @@ public class TNTTagGameManager {
                     moduleConfig.getStringFrom("language.yml", "messages.detonated"));
             context.getSoundsAPI().play(player, coreConfig.getSound("sounds.in_game.dead"));
             player.getWorld().spawnParticle(
-                    Particle.EXPLOSION,
+                    explosionParticle(),
                     player.getLocation().add(0, 1, 0),
                     moduleConfig.getInt("explosion.particle_count", 6),
                     0.35, 0.35, 0.35, 0.02
@@ -418,7 +418,7 @@ public class TNTTagGameManager {
 
         List<Player> alivePlayers = new ArrayList<>(context.getAlivePlayers());
         if (alivePlayers.size() == 1) {
-            Player winner = alivePlayers.getFirst();
+            Player winner = alivePlayers.get(0);
             if (runtime.setWinnerIfAbsent(winner.getUniqueId())) {
                 context.setWinner(winner);
                 statsService.recordWin(winner);
@@ -608,6 +608,15 @@ public class TNTTagGameManager {
         }
 
         return Particle.CLOUD;
+    }
+
+    private Particle explosionParticle() {
+        Particle particle = parseParticle("EXPLOSION");
+        if (particle != null) {
+            return particle;
+        }
+        particle = parseParticle("EXPLOSION_NORMAL");
+        return particle != null ? particle : Particle.CLOUD;
     }
 
     private Particle parseParticle(String name) {
